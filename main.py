@@ -3,6 +3,9 @@ import urllib.request
 import json
 import os
 import threading
+import sys
+import psutil
+import shared
 
 screensize_x = 500
 screensize_y = 500
@@ -16,6 +19,29 @@ if not os.path.isdir("tiles"):
 opener = urllib.request.build_opener()
 opener.addheaders = [('User-Agent', "Enderbyte-Programs/Maps")]
 urllib.request.install_opener(opener)
+
+def parse_size(data: int) -> str:
+    result:str = ""
+    if data < 0:
+        neg = True
+        data = -data
+    else:
+        neg = False
+    if data < 2000:
+        result = f"{data} bytes"
+    elif data > 2000000000:
+        result = f"{round(data/1000000000,2)} GB"
+    elif data > 2000000:
+        result = f"{round(data/1000000,2)} MB"
+    elif data > 2000:
+        result = f"{round(data/1000,2)} KB"
+    if neg:
+        result = "-"+result
+    return result
+
+def get_memusage() -> int:
+    p = psutil.Process(os.getpid())
+    return p.memory_info().rss
 
 def write_3d(z,y,x,val):
     if not z in realdata:
@@ -153,6 +179,10 @@ while running:
 
                 yoffset //= 2
 
+            if event.key == pygame.K_f:
+                if shared.confirm(screen,"Arial",36,"This will free up memory but decrease loading speeds. Do you want to continue?"):
+                    pass
+
         elif event.type == pygame.KEYUP:
             keyarray[event.key] = False
 
@@ -229,7 +259,7 @@ while running:
             for x in range(nearest_tile_x,last_tile_x):
                 screen.blit(currentsource.load_url(zoom,y,x),(((x - nearest_tile_x) * currentsource.tilewidth) - (xoffset % currentsource.tilewidth),((y - nearest_tile_y) * currentsource.tileheight)  - (yoffset % currentsource.tileheight)))
 
-        screen.blit(font.render(f"X: {xoffset} Y: {yoffset} Z: {zoom} || {round(clock.get_fps())} FPS",True,(0,0,0)),(0,0))
+        screen.blit(font.render(f"X: {xoffset} Y: {yoffset} Z: {zoom} || {round(clock.get_fps())} FPS || M: {parse_size(get_memusage())}",True,(0,0,0)),(0,0))
         needsupdate = False
 
     # Flip the display

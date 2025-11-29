@@ -2,3 +2,4 @@ tiles/
 dist/
 build/
 *.spec
+__pycache__/
