@@ -1,0 +1,4 @@
+tiles/
+dist/
+build/
+*.spec

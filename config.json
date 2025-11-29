@@ -1,0 +1,14 @@
+{
+    "sources" : {
+        "default" : {
+            "url" : "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            "minzoom" : 0,
+            "maxzoom": 19,
+            "priority" : 1,
+            "tilewidth" : 256,
+            "tileheight" : 256,
+            "ext" : "png",
+            "stdrules" : true
+        }
+    }
+}
