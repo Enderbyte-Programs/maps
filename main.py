@@ -14,7 +14,7 @@ if not os.path.isdir("tiles"):
     os.mkdir("tiles")
 
 opener = urllib.request.build_opener()
-opener.addheaders = [('User-Agent', "Enderbyte-Programs/ExperimentalMap-01")]
+opener.addheaders = [('User-Agent', "Enderbyte-Programs/Maps")]
 urllib.request.install_opener(opener)
 
 def write_3d(z,y,x,val):
@@ -99,6 +99,8 @@ keyarray:dict = {}
 errorscreen = pygame.image.load("error.png").convert()
 loadingscreen = pygame.image.load("loading.png").convert()
 anomalyscreen = pygame.image.load("anomaly.png").convert()
+mouse_startclickpos = (0,0)
+isdragging = False
 
 def get_from_keyarray(key):
     if key in keyarray:
@@ -159,6 +161,41 @@ while running:
             current_source_tiles_to_centre_x = round(screensize_x / 2 / currentsource.tilewidth)
             current_source_tiles_to_centre_y = round(screensize_y / 2 / currentsource.tileheight)
             needsupdate = True
+
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                isdragging = True
+                mouse_startclickpos = pygame.mouse.get_pos()
+        
+        elif event.type == pygame.MOUSEWHEEL:
+            if event.y == 1:
+                zoom += 1
+                xoffset *= 2
+                xoffset += current_source_tiles_to_centre_x*currentsource.tilewidth
+                yoffset *= 2
+                yoffset += current_source_tiles_to_centre_y*currentsource.tileheight
+            elif event.y == -1:
+                zoom -= 1
+                xoffset -= current_source_tiles_to_centre_x*currentsource.tilewidth
+
+                xoffset //= 2
+                yoffset -= current_source_tiles_to_centre_y*currentsource.tileheight
+
+                yoffset //= 2
+            needsupdate = True
+
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 1:
+                isdragging = False
+
+        elif event.type == pygame.MOUSEMOTION:
+            if isdragging:
+                xdiff = pygame.mouse.get_pos()[0] - mouse_startclickpos[0]
+                ydiff = pygame.mouse.get_pos()[1] - mouse_startclickpos[1]
+                xoffset -= xdiff
+                yoffset -= ydiff
+                mouse_startclickpos = pygame.mouse.get_pos()
+                needsupdate = True
 
     if get_from_keyarray(pygame.K_DOWN):
         needsupdate = True
