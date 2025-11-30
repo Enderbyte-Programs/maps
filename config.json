@@ -10,5 +10,6 @@
             "ext" : "png",
             "stdrules" : true
         }
-    }
+    },
+    "tilesize" : 19000000
 }

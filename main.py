@@ -1,5 +1,6 @@
 import pygame
 import urllib.request
+import urllib.error
 import json
 import os
 import threading
@@ -11,8 +12,12 @@ import shutil
 screensize_x = 500
 screensize_y = 500
 
+internet_is_working = True
+
 realdata = {}
 inprogress:list[str] = []
+downloaded_from_web = 0
+tile_size = 0
 
 if not os.path.isdir("tiles"):
     os.mkdir("tiles")
@@ -59,11 +64,21 @@ def grab_3d(z,y,x):
         return None
     
 def do_download(url:str,file:str):
-    global needsupdate
+    global needsupdate, tile_size, downloaded_from_web, internet_is_working
     print(url)
     inprogress.append(url)
     os.makedirs(os.path.dirname(file),exist_ok=True)
-    urllib.request.urlretrieve(url,file)
+    try:
+        msg = urllib.request.urlretrieve(url,file)[1]
+    except urllib.error.URLError:
+        internet_is_working = False
+        inprogress.remove(url)
+        needsupdate = True
+
+        return
+    internet_is_working = True
+    tile_size += len(msg.as_bytes())
+    downloaded_from_web += len(msg.as_bytes())
     inprogress.remove(url)
     needsupdate = True
     print("Completed",file)
@@ -98,8 +113,11 @@ class Source:
                     print(z,y,x,"Downloading")
                     parsedurl = self.url.replace(r"{z}",str(z)).replace(r"{y}",str(y)).replace(r"{x}",str(x))
                     if not parsedurl in inprogress:
-                        print("NEW INIT")
-                        threading.Thread(target=do_download,args=(parsedurl,fileoutpath)).start()
+                        if internet_is_working:
+                            print("NEW INIT")
+                            threading.Thread(target=do_download,args=(parsedurl,fileoutpath)).start()
+                        else:
+                            return nointernetscreen
                     return loadingscreen
                 except:
                     return errorscreen
@@ -126,6 +144,7 @@ keyarray:dict = {}
 errorscreen = pygame.image.load("error.png").convert()
 loadingscreen = pygame.image.load("loading.png").convert()
 anomalyscreen = pygame.image.load("anomaly.png").convert()
+nointernetscreen = pygame.image.load("nointernet.png").convert()
 mouse_startclickpos = (0,0)
 isdragging = False
 
@@ -139,7 +158,7 @@ with open("config.json") as f:
     data = json.load(f)
 
 currentsource = Source(data["sources"]["default"])
-
+tile_size:int = data["tilesize"]
 current_source_tiles_to_centre_x = round(screensize_x / 2 / currentsource.tilewidth)
 current_source_tiles_to_centre_y = round(screensize_y / 2 / currentsource.tileheight)
 
@@ -275,7 +294,7 @@ while running:
             for x in range(nearest_tile_x,last_tile_x):
                 screen.blit(currentsource.load_url(zoom,y,x),(((x - nearest_tile_x) * currentsource.tilewidth) - (xoffset % currentsource.tilewidth),((y - nearest_tile_y) * currentsource.tileheight)  - (yoffset % currentsource.tileheight)))
 
-        screen.blit(font.render(f"X: {xoffset} Y: {yoffset} Z: {zoom} || {round(clock.get_fps())} FPS || M: {parse_size(get_memusage())}",True,(0,0,0)),(0,0))
+        screen.blit(font.render(f"X: {xoffset} Y: {yoffset} Z: {zoom} || {round(clock.get_fps())} FPS || M: {parse_size(get_memusage())} D: {parse_size(downloaded_from_web)} W: {parse_size(tile_size)}",True,(0,0,0)),(0,0))
         needsupdate = False
 
 
