@@ -1,0 +1,1 @@
+pyinstaller --icon=icon.ico -n map -w main.py
