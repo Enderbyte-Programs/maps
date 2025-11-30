@@ -2,11 +2,14 @@ import pygame.font
 
 def draw_text_middle(surface:pygame.Surface, dfont:str, text:str, size:int, colour:list|tuple):
     font = pygame.font.SysFont(dfont,size)
-    label = font.render(text, 1, colour)
+    label = font.render(text, True, colour)
     lx,ly = label.get_size()
     sx,sy = surface.get_size()
 
-    surface.blit(label,(sx/2 - lx / 2,sy/2 - sx/2))
+    surface.blit(label,(sx/2 - lx / 2,sy/2 - ly/2))
+
+    #return bottom of y
+    return (sy/2 + ly/2)
     
 
 def confirm(win:pygame.Surface,fontname:str,fontsize:int,msg:str):
@@ -15,13 +18,24 @@ def confirm(win:pygame.Surface,fontname:str,fontsize:int,msg:str):
     run = True
     while run:
         win.fill((0,0,128))
-        draw_text_middle(win,fontname,msg + " [Y/N]",fontsize,(255,255,255))
-        for event in pygame.event.get():
+        ev = pygame.event.get()
+        by = draw_text_middle(win,fontname,msg + " [Y/N]",fontsize,(255,255,255))
+        yesbutton = Button((0,255,0),win.get_size()[0]/2-100,by,100,50,"YES")
+        nobutton = Button((255,0,0),win.get_size()[0]/2,by,100,50,"NO")
+        if yesbutton.isOver(ev):
+            return True
+        if nobutton.isOver(ev):
+            return False
+        yesbutton.draw(win)
+        nobutton.draw(win)
+
+        for event in ev:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_y:
                     return True
                 elif event.key == pygame.K_n:
                     return False
+        
         clk.tick(30)    
         pygame.display.update()
 
@@ -45,8 +59,8 @@ class Button():
         pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.height), 0)
 
         if self.text != '':
-            font = pygame.font.SysFont('Consolas', 24)
-            text = font.render(self.text, 1, (0, 0, 0))
+            font = pygame.font.SysFont('Arial', 24)
+            text = font.render(self.text, True, (0, 0, 0))
             win.blit(text, (
             self.x + (self.width / 2 - text.get_width() / 2), self.y + (self.height / 2 - text.get_height() / 2)))
 

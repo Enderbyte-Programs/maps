@@ -6,6 +6,7 @@ import threading
 import sys
 import psutil
 import shared
+import shutil
 
 screensize_x = 500
 screensize_y = 500
@@ -142,6 +143,8 @@ currentsource = Source(data["sources"]["default"])
 current_source_tiles_to_centre_x = round(screensize_x / 2 / currentsource.tilewidth)
 current_source_tiles_to_centre_y = round(screensize_y / 2 / currentsource.tileheight)
 
+
+
 # Run until the user asks to quit
 running = True
 clock = pygame.time.Clock()
@@ -149,9 +152,12 @@ needsupdate = True
 mousestate = 0
 ttk = 0
 while running:
+    plusbutton = shared.Button((255,255,255),10,screensize_y - 25,20,20,"+")
+    minusbutton = shared.Button((255,255,255),40,screensize_y - 25,20,20,"-")   
     ttk += 1
     # Did the user click the window close button?
-    for event in pygame.event.get():
+    ev = pygame.event.get()
+    for event in ev:
         if event.type == pygame.QUIT:
             running = False
         
@@ -180,8 +186,16 @@ while running:
                 yoffset //= 2
 
             if event.key == pygame.K_f:
-                if shared.confirm(screen,"Arial",36,"This will free up memory but decrease loading speeds. Do you want to continue?"):
-                    pass
+                needsupdate = True
+                if shared.confirm(screen,"Arial",24,"This will free up memory but \ndecrease loading speeds. \nDo you want to continue?"):
+                    realdata = {}
+            
+            if event.key == pygame.K_r:
+                needsupdate = True
+                if shared.confirm(screen,"Arial",24,"This wil free up disk space but\ndestroy all cached tiles.\nAre you sure you want to do this?"):
+                    realdata = {}
+                    shutil.rmtree("tiles")
+                    os.mkdir("tiles")
 
         elif event.type == pygame.KEYUP:
             keyarray[event.key] = False
@@ -225,6 +239,7 @@ while running:
                 xoffset -= xdiff
                 yoffset -= ydiff
                 mouse_startclickpos = pygame.mouse.get_pos()
+            
                 needsupdate = True
 
     if get_from_keyarray(pygame.K_DOWN):
@@ -248,6 +263,7 @@ while running:
 
     # Fill the background with white
     if needsupdate:
+        pygame.mouse.set_cursor(pygame.cursors.Cursor(pygame.SYSTEM_CURSOR_SIZEALL))
         screen.fill((255, 255, 255))
 
         nearest_tile_x = xoffset // currentsource.tilewidth 
@@ -261,6 +277,31 @@ while running:
 
         screen.blit(font.render(f"X: {xoffset} Y: {yoffset} Z: {zoom} || {round(clock.get_fps())} FPS || M: {parse_size(get_memusage())}",True,(0,0,0)),(0,0))
         needsupdate = False
+
+
+                #Write UI
+    pygame.draw.rect(screen,(200,200,200),(0,screensize_y-30,screensize_x,30))
+    
+    if plusbutton.isOver(ev):
+        zoom += 1
+        xoffset *= 2
+        xoffset += current_source_tiles_to_centre_x*currentsource.tilewidth
+        yoffset *= 2
+        yoffset += current_source_tiles_to_centre_y*currentsource.tileheight
+        needsupdate = True
+
+    elif minusbutton.isOver(ev):
+        zoom -= 1
+        xoffset -= current_source_tiles_to_centre_x*currentsource.tilewidth
+
+        xoffset //= 2
+        yoffset -= current_source_tiles_to_centre_y*currentsource.tileheight
+
+        yoffset //= 2
+        needsupdate = True
+
+    plusbutton.draw(screen)
+    minusbutton.draw(screen)
 
     # Flip the display
     clock.tick(30)
