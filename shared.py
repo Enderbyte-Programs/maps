@@ -40,7 +40,7 @@ def confirm(win:pygame.Surface,fontname:str,fontsize:int,msg:str):
         pygame.display.update()
 
 class Button():
-    def __init__(self, color, x, y, width, height, text=''):
+    def __init__(self, color, x, y, width, height, text='',imagepath = ''):
         self.color = color
         self.ogcol = color
         self.x = x
@@ -50,6 +50,11 @@ class Button():
         self.text = text
         self.juston = False
         self.on = False
+
+        if imagepath != '':
+            self.image:pygame.Surface = pygame.image.load(imagepath).convert()
+        else:
+            self.image:pygame.Surface = None # type: ignore
 
     def draw(self, win, outline=None):
         # Call this method to draw the button on the screen
@@ -61,8 +66,12 @@ class Button():
         if self.text != '':
             font = pygame.font.SysFont('Arial', 24)
             text = font.render(self.text, True, (0, 0, 0))
-            win.blit(text, (
-            self.x + (self.width / 2 - text.get_width() / 2), self.y + (self.height / 2 - text.get_height() / 2)))
+
+        else:
+            text = self.image
+        
+        win.blit(text, (
+        self.x + (self.width / 2 - text.get_width() / 2), self.y + (self.height / 2 - text.get_height() / 2)))
 
     def isOver(self, ev):
         pos = pygame.mouse.get_pos()

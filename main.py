@@ -141,10 +141,10 @@ xoffset = 0
 yoffset = 0
 zoom = 2
 keyarray:dict = {}
-errorscreen = pygame.image.load("error.png").convert()
-loadingscreen = pygame.image.load("loading.png").convert()
-anomalyscreen = pygame.image.load("anomaly.png").convert()
-nointernetscreen = pygame.image.load("nointernet.png").convert()
+errorscreen = pygame.image.load("assets/prefiles/error.png").convert()
+loadingscreen = pygame.image.load("assets/prefiles/loading.png").convert()
+anomalyscreen = pygame.image.load("assets/prefiles/anomaly.png").convert()
+nointernetscreen = pygame.image.load("assets/prefiles/nointernet.png").convert()
 mouse_startclickpos = (0,0)
 isdragging = False
 
@@ -172,7 +172,9 @@ mousestate = 0
 ttk = 0
 while running:
     plusbutton = shared.Button((255,255,255),10,screensize_y - 25,20,20,"+")
-    minusbutton = shared.Button((255,255,255),40,screensize_y - 25,20,20,"-")   
+    minusbutton = shared.Button((255,255,255),40,screensize_y - 25,20,20,"-")
+    clearmembutton = shared.Button((255,255,255),70,screensize_y - 25,20,20,imagepath="assets/icons/clear-memory.png")
+    clearchachebutton = shared.Button((255,255,255),100,screensize_y - 25,20,20,imagepath="assets/icons/clear-everything.png")
     ttk += 1
     # Did the user click the window close button?
     ev = pygame.event.get()
@@ -213,6 +215,7 @@ while running:
                 needsupdate = True
                 if shared.confirm(screen,"Arial",24,"This wil free up disk space but\ndestroy all cached tiles.\nAre you sure you want to do this?"):
                     realdata = {}
+                    tile_size = 0
                     shutil.rmtree("tiles")
                     os.mkdir("tiles")
 
@@ -319,8 +322,23 @@ while running:
         yoffset //= 2
         needsupdate = True
 
+    elif clearmembutton.isOver(ev):
+        needsupdate = True
+        if shared.confirm(screen,"Arial",24,"This will free up memory but \ndecrease loading speeds. \nDo you want to continue?"):
+            realdata = {}
+
+    elif clearchachebutton.isOver(ev):
+        needsupdate = True
+        if shared.confirm(screen,"Arial",24,"This wil free up disk space but\ndestroy all cached tiles.\nAre you sure you want to do this?"):
+            realdata = {}
+            tile_size = 0
+            shutil.rmtree("tiles")
+            os.mkdir("tiles")
+
     plusbutton.draw(screen)
     minusbutton.draw(screen)
+    clearchachebutton.draw(screen)
+    clearmembutton.draw(screen)
 
     # Flip the display
     clock.tick(30)
