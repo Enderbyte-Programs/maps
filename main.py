@@ -175,6 +175,7 @@ while running:
     minusbutton = shared.Button((255,255,255),40,screensize_y - 25,20,20,"-")
     clearmembutton = shared.Button((255,255,255),70,screensize_y - 25,20,20,imagepath="assets/icons/clear-memory.png")
     clearchachebutton = shared.Button((255,255,255),100,screensize_y - 25,20,20,imagepath="assets/icons/clear-everything.png")
+    reloadinetbutton = shared.Button((255,255,255),130,screensize_y - 25,20,20,imagepath="assets/icons/inetreload.png")
     ttk += 1
     # Did the user click the window close button?
     ev = pygame.event.get()
@@ -335,6 +336,11 @@ while running:
             shutil.rmtree("tiles")
             os.mkdir("tiles")
 
+    elif reloadinetbutton.isOver(ev):
+        needsupdate = True
+        internet_is_working = True
+
+    reloadinetbutton.draw(screen)
     plusbutton.draw(screen)
     minusbutton.draw(screen)
     clearchachebutton.draw(screen)
